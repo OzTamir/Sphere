@@ -21,7 +21,7 @@
 
 		<style>
         body {
-            color: #000;
+            color: white;
             font-family:Monospace;
             font-size:13px;
             text-align:center;
@@ -38,17 +38,18 @@
 	<!-- info on screen display -->
 	<div id="info">
 		<div class="top">
+			<p> QEWASD - Camera Panning		|	Arrows - Ball movement</p>
 		</div>
 		<div class="bottom" id="inlineDoc" >
-			- <i>p</i> for screenshot
+			- <i>r</i> to reset camera - <i>p</i> for screenshot
 		</div> 
 	</div> 
 
 	<script type="text/javascript">
 		var stats, scene, renderer;
 		var camera, cameraControls;
-		var keyboard, sphere, mirrorSphereCamera;
-
+		var keyboard, sphere, ground, grassTex;
+		var groundW, groundH;
 
 		if( !init() )	animate();
 
@@ -140,16 +141,18 @@
 			scene.add( sphere );
 
 			// Add ground
-			var grassTex = THREE.ImageUtils.loadTexture('images/grass.png'); 
+			grassTex = THREE.ImageUtils.loadTexture('images/grass.png'); 
 			grassTex.wrapS = THREE.RepeatWrapping; 
 			grassTex.wrapT = THREE.RepeatWrapping; 
 			grassTex.repeat.x = 256; 
 			grassTex.repeat.y = 256; 
-			var groundMat = new THREE.MeshBasicMaterial({map:grassTex}); 
-			var groundGeo = new THREE.PlaneGeometry(400,400); 
-			var ground = new THREE.Mesh(groundGeo,groundMat); 
+			var groundMat = new THREE.MeshBasicMaterial({map:grassTex});
+			groundW = 400;
+			groundH = 400;
+			var groundGeo = new THREE.PlaneGeometry(groundW,groundH); 
+			ground = new THREE.Mesh(groundGeo,groundMat); 
 			ground.position.y = -1.9; //lower it 
-			ground.rotation.x = -Math.PI/2; //-90 degrees around the xaxis 
+			ground.rotation.x = -Math.PI / 2; //-90 degrees around the xaxis 
 			//IMPORTANT, draw on both sides 
 			ground.doubleSided = true; 
 			scene.add(ground);
@@ -176,10 +179,16 @@
 			//cameraControls.update();
 			roll();
 
+			
+
 			// actually render the scene
 			renderer.render( scene, camera );
 		}
-		//z * Math.cos(rotSpeed) + x * Math.sin(rotSpeed);
+		
+		function updateGround() {
+
+		}
+
 		function roll() {
 			var sphereRotSpeed = .02 
 			var x = sphere.position.x,
@@ -187,24 +196,50 @@
 	        z = sphere.position.z;
 
 			if( keyboard.pressed("up") ) {
-				sphere.position.z -= 1
-				sphere.rotation.x -= (23.5/180) * Math.PI;
-				if (Math.abs(sphere.rotation.z > (5/180) * Math.PI))sphere.rotation.x -= (5/180)*Math.PI;
-				if (Math.abs(sphere.position.z - camera.position.z) > 20) camera.position.z -= 1
+				if (sphere.position.z < - 199) {
+					sphere.position.z += .25;
+					sphere.rotation.x -= (23.5/180) * Math.PI;
+				}
+				else {
+					sphere.position.z -= 1;
+					sphere.rotation.x -= (23.5/180) * Math.PI;
+					if (Math.abs(sphere.rotation.z > (5/180) * Math.PI)) sphere.rotation.x -= (5/180)*Math.PI;
+					if (Math.abs(sphere.position.z - camera.position.z) > 20) camera.position.z -= 1;
+				}
 			}
 			if ( keyboard.pressed("down") ) {
-				sphere.position.z += 1
-				sphere.rotation.x += (23.5/180) * Math.PI;
-				if (Math.abs(sphere.rotation.z > (5/180) * Math.PI))sphere.rotation.x -= (5/180)*Math.PI;
-				if (Math.abs(sphere.position.z - camera.position.z) < 25) camera.position.z += 1
+				if (sphere.position.z > 199) {
+					sphere.position.z -= .25;
+					sphere.rotation.x += (23.5/180) * Math.PI;
+				}
+				else {
+					sphere.position.z += 1;
+					sphere.rotation.x += (23.5/180) * Math.PI;
+					if (Math.abs(sphere.rotation.z > (5/180) * Math.PI))sphere.rotation.x -= (5/180)*Math.PI;
+					if (Math.abs(sphere.position.z - camera.position.z) < 20) camera.position.z += 1;
+				}
 			}
 		    if (keyboard.pressed("left")){ 
-		        sphere.position.x = x * Math.cos(sphereRotSpeed) + z * Math.sin(sphereRotSpeed);
-		        sphere.rotation.z += (45/180) * Math.PI;
+				if (sphere.position.x < - 199) {
+					sphere.position.x += .25;
+					sphere.rotation.z -= (45/180) * Math.PI;
+				}
+				else {
+			        sphere.position.x = x * Math.cos(sphereRotSpeed) + z * Math.sin(sphereRotSpeed);
+			        sphere.rotation.z += (45/180) * Math.PI;
+					if (Math.abs(sphere.position.x - camera.position.x) < 25) camera.position.x -= 1;
+				}
 		    }
 		    if (keyboard.pressed("right")){
-		        sphere.position.x = x * Math.cos(sphereRotSpeed) - z * Math.sin(sphereRotSpeed);
-		        sphere.rotation.z -= (45/180) * Math.PI;
+				if (sphere.position.x > 199) {
+					sphere.position.x -= .25;
+					sphere.rotation.z += (45/180) * Math.PI;
+				}
+				else {
+			        sphere.position.x = x * Math.cos(sphereRotSpeed) - z * Math.sin(sphereRotSpeed);
+			        sphere.rotation.z -= (45/180) * Math.PI;
+					if (Math.abs(sphere.position.x - camera.position.x) > 20) camera.position.x += 1;
+				}
 		    }
 
 		    if (keyboard.pressed("A")){
@@ -220,10 +255,15 @@
 		    	if (camera.position.y > (45/180) * Math.PI )camera.position.y -= (45/180) * Math.PI;
 		    }
 		    if (keyboard.pressed("Q")){
-				camera.position.z -= 1
+				camera.position.z -= 1;
 		    }
 		    if (keyboard.pressed("E")){
-				camera.position.z += 1
+				camera.position.z += 1;
+		    }
+		    if (keyboard.pressed("R")) {
+		    	camera.position.x = 0;
+		    	camera.position.z = 5;
+		    	camera.position.y = 5;
 		    }
 		    camera.lookAt(sphere.position);
 		}
