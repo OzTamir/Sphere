@@ -200,11 +200,11 @@
 			}
 		    if (keyboard.pressed("left")){ 
 		        sphere.position.x = x * Math.cos(sphereRotSpeed) + z * Math.sin(sphereRotSpeed);
-		        sphere.rotation.z += (23.5/180) * Math.PI;
+		        sphere.rotation.z += (45/180) * Math.PI;
 		    }
 		    if (keyboard.pressed("right")){
 		        sphere.position.x = x * Math.cos(sphereRotSpeed) - z * Math.sin(sphereRotSpeed);
-		        sphere.rotation.z -= (23.5/180) * Math.PI;
+		        sphere.rotation.z -= (45/180) * Math.PI;
 		    }
 
 		    if (keyboard.pressed("A")){
@@ -218,6 +218,12 @@
 		    }
 		    if (keyboard.pressed("S")){
 		    	if (camera.position.y > (45/180) * Math.PI )camera.position.y -= (45/180) * Math.PI;
+		    }
+		    if (keyboard.pressed("Q")){
+				camera.position.z -= 1
+		    }
+		    if (keyboard.pressed("E")){
+				camera.position.z += 1
 		    }
 		    camera.lookAt(sphere.position);
 		}
