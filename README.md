@@ -4,7 +4,7 @@ Sphere - A simple game written in Three.js
 ![Sphere Preview](https://raw2.github.com/OzTamir/Sphere/master/demo.png)
 
 # Introduction
-Sphere is a little game I wrote to get my hands dirty with Three.js, a JavaScript 3D Library which makes WebGL simpler. The game isn't much, but it includes some good examples of Three.js usage (such as shadows and movments).
+Sphere is a little game I wrote to get my hands dirty with Three.js, a JavaScript 3D Library which makes WebGL simpler.
 
 # Controls
 
