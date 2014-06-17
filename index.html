@@ -243,7 +243,7 @@
 					sphere.rotation.z -= (45/180) * Math.PI;
 				}
 				else {
-			        sphere.position.x = x * Math.cos(sphereRotSpeed) + z * Math.sin(sphereRotSpeed);
+			        sphere.position.x -= 1
 			        sphere.rotation.z += (45/180) * Math.PI;
 					if (Math.abs(sphere.position.x - camera.position.x) < 20) camera.position.x -= 1;
 				}
@@ -254,7 +254,7 @@
 					sphere.rotation.z += (45/180) * Math.PI;
 				}
 				else {
-			        sphere.position.x = x * Math.cos(sphereRotSpeed) - z * Math.sin(sphereRotSpeed);
+			        sphere.position.x += 1
 			        sphere.rotation.z -= (45/180) * Math.PI;
 					if (Math.abs(sphere.position.x - camera.position.x) > 20) camera.position.x += 1;
 				}
