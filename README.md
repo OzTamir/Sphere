@@ -1,7 +1,7 @@
 Sphere - A simple game written in Three.js
 ======
 
-![Sphere Preview](https://raw2.github.com/OzTamir/Sphere/master/demo.png)
+![Sphere Preview](https://raw.githubusercontent.com/OzTamir/Sphere/master/demo.png)
 
 # Introduction
 Sphere is a little game I wrote to get my hands dirty with Three.js, a JavaScript 3D Library which makes WebGL simpler.
@@ -36,5 +36,5 @@ These keys are used to set the game enviroment rather than changing any in-game 
 # Acknowledgment
  - [Three.js] (http://threejs.org/) A JavaScript 3D Library which makes WebGL simpler.
  - [Three.js Boilerplate] (https://github.com/jeromeetienne/threejsboilerplate) Boilerplate for Three.js.
-
-Spaciel thanks for the wonderful guys over at [LearningThreeJS] (http://learningthreejs.com/) for the helpful tutorials.
+ - [@stemkoski] (https://github.com/stemkoski) For his helpful demos and for the great textures taken from [here] (https://github.com/stemkoski/stemkoski.github.com/tree/master/Three.js/images).
+ - [LearningThreeJS] (http://learningthreejs.com/) for the helpful tutorials.
