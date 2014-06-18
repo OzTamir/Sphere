@@ -48,7 +48,7 @@
 
 	<script type="text/javascript">
 		var stats, scene, renderer;
-		var camera, cameraControls;
+		var camera, cameraControls, mirrorSphereCamera;
 		var keyboard, sphere, ground, grassTex;
 		var groundW, groundH;
 
@@ -128,59 +128,74 @@
 			// Add keyboard listener
 			keyboard = new THREEx.KeyboardState();
 			
-			// Add sky
-			var urls = [ 
-			    "images/space.jpg", 
-			    "images/space.jpg", 
-			    "images/space.jpg", 
-			    "images/space.jpg", 
-			    "images/space.jpg", 
-			    "images/space.jpg", 
-			]; 
-			var textureCube = THREE.ImageUtils.loadTextureCube(urls);
-			//setup the cube shader 
-			var shader = THREE.ShaderUtils.lib["cube"]; 
-			var uniforms = THREE.UniformsUtils.clone(shader.uniforms); 
-			uniforms['tCube'].texture = textureCube; 
-			var material = new THREE.ShaderMaterial({ 
-			        fragmentShader : shader.fragmentShader, 
-			        vertexShader   : shader.vertexShader, 
-			        uniforms       : uniforms 
-			});
-			//create a skybox 
-			var size = 10000; 
-			skyboxMesh = new THREE.Mesh(  
-			    new THREE.CubeGeometry(size,size,size),material); 
-			//IMPORTANT!! draw on the inside instead of outside 
-			skyboxMesh.flipSided = true; // you must have this or you won't see anything 
-			scene.add(skyboxMesh); 
+			// // Add sky
+			// var urls = [ 
+			//     "images/space.jpg", 
+			//     "images/space.jpg", 
+			//     "images/space.jpg", 
+			//     "images/space.jpg", 
+			//     "images/space.jpg", 
+			//     "images/space.jpg", 
+			// ]; 
+			// var textureCube = THREE.ImageUtils.loadTextureCube(urls);
+			// //setup the cube shader 
+			// var shader = THREE.ShaderUtils.lib["cube"]; 
+			// var uniforms = THREE.UniformsUtils.clone(shader.uniforms); 
+			// uniforms['tCube'].texture = textureCube; 
+			// var material = new THREE.ShaderMaterial({ 
+			//         fragmentShader : shader.fragmentShader, 
+			//         vertexShader   : shader.vertexShader, 
+			//         uniforms       : uniforms 
+			// });
+			// //create a skybox 
+			// var size = 10000; 
+			// skyboxMesh = new THREE.Mesh(  
+			//     new THREE.CubeGeometry(size,size,size),material); 
+			// //IMPORTANT!! draw on the inside instead of outside 
+			// skyboxMesh.flipSided = true; // you must have this or you won't see anything 
+			// scene.add(skyboxMesh); 
 
 			// Add sphere
 			var geometry = new THREE.SphereGeometry( 2, 32, 32 );
-			var material = new THREE.MeshPhongMaterial( {} );
+			mirrorSphereCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
+			var material = new THREE.MeshBasicMaterial( {
+				envMap : mirrorSphereCamera.renderTarget,
+				map : THREE.ImageUtils.loadTexture('images/earth.jpg')
+			} );
 			sphere = new THREE.Mesh( geometry, material );
-			sphere.position.z = -50
+			sphere.position.z = -50;
 			sphere.castShadow = true;
+			mirrorSphereCamera.position = sphere.position;
 			scene.add( sphere );
-			material.map = THREE.ImageUtils.loadTexture('images/earth.jpg')
 
-			// Add ground
-			grassTex = THREE.ImageUtils.loadTexture('images/grass.png'); 
-			grassTex.wrapS = THREE.RepeatWrapping; 
-			grassTex.wrapT = THREE.RepeatWrapping; 
-			grassTex.repeat.x = 256; 
-			grassTex.repeat.y = 256; 
-			var groundMat = new THREE.MeshBasicMaterial({map:grassTex});
-			groundW = 400;
-			groundH = 400;
-			var groundGeo = new THREE.PlaneGeometry(groundW,groundH); 
-			ground = new THREE.Mesh(groundGeo,groundMat); 
-			ground.position.y = -1.9; //lower it 
-			ground.rotation.x = -Math.PI / 2; //-90 degrees around the xaxis 
-			//IMPORTANT, draw on both sides 
-			ground.doubleSided = true; 
-			ground.receiveShadow = true;
+
+			var floorTexture = new THREE.ImageUtils.loadTexture( 'images/grass.png' );
+			floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
+			floorTexture.repeat.set( 10, 10 );
+			var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side:THREE.BackSide } );
+			var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+			var ground = new THREE.Mesh(floorGeometry, floorMaterial);
+			ground.position.y = -1.9;
+			ground.rotation.x = Math.PI / 2;
 			scene.add(ground);
+
+			// // Add ground
+			// grassTex = THREE.ImageUtils.loadTexture('images/grass.png'); 
+			// grassTex.wrapS = THREE.RepeatWrapping; 
+			// grassTex.wrapT = THREE.RepeatWrapping; 
+			// grassTex.repeat.x = 256; 
+			// grassTex.repeat.y = 256; 
+			// var groundMat = new THREE.MeshBasicMaterial({map:grassTex});
+			// groundW = 400;
+			// groundH = 400;
+			// var groundGeo = new THREE.PlaneGeometry(groundW,groundH); 
+			// ground = new THREE.Mesh(groundGeo,groundMat); 
+			// ground.position.y = -1.9; //lower it 
+			// ground.rotation.x = -Math.PI / 2; //-90 degrees around the xaxis 
+			// //IMPORTANT, draw on both sides 
+			// ground.doubleSided = true; 
+			// ground.receiveShadow = true;
+			// scene.add(ground);
 		}
 
 		// animation loop
@@ -202,7 +217,13 @@
 		function render() {
 			// update camera controls
 			//cameraControls.update();
+
+			// Check for keyboard events and (if needed) roll the ball
 			roll();
+
+			sphere.visible = false;
+			mirrorSphereCamera.updateCubeMap( renderer, scene );
+			sphere.visible = true;
 
 			// actually render the scene
 			renderer.render( scene, camera );
@@ -284,6 +305,7 @@
 		    	camera.position.z = 5;
 		    	camera.position.y = 5;
 		    }
+		    mirrorSphereCamera.position = sphere.position;
 		    camera.lookAt(sphere.position);
 		}
 	</script>
