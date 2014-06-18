@@ -16,6 +16,7 @@ The ball is controled using the arrow keys. It works just as you'd expect, but h
 	- Left: Go left (Decrease Position on the X axis)
 	- Right: Go right (Increase Position on the X axis)
 	- Space: Jump! (Increase position on the Y axis)
+	- 1-3: Set the ball's speed
 
 ## The Camera
 The camera is controled using the Q,E,W,A,S and D keys.
