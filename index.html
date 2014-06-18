@@ -62,15 +62,15 @@
 					antialias		: true,	// to get smoother output
 					preserveDrawingBuffer	: true	// to allow screenshot
 				});
-				renderer.setClearColorHex( 0xBBBBBB, 1 );
+				renderer.setClearColor( 0xBBBBBB, 1 );
 				renderer.shadowMapEnabled = true;
 				renderer.shadowMapSoft = true;
 			// uncomment if webgl is required
-			}else{
-				Detector.addGetWebGLMessage();
-				return true;
 			// }else{
-			// 	renderer	= new THREE.CanvasRenderer();
+			// 	Detector.addGetWebGLMessage();
+			// 	return true;
+			}else{
+				renderer	= new THREE.CanvasRenderer();
 			}
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			document.getElementById('container').appendChild(renderer.domElement);
@@ -85,7 +85,7 @@
 			scene = new THREE.Scene();
 
 			// put a camera in the scene
-			camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 20000 );
 			camera.position.set(0, 5, 5);
 			scene.add(camera);
 
@@ -104,63 +104,54 @@
 			/* -- END OF Boilerplate -- */
 
 			// Add light
-			var light	= new THREE.AmbientLight( 0x222222 );
-			scene.add( light );
-			var light	= new THREE.DirectionalLight( 0xffffff, 2 );
-			light.position.set(0, 1, 0);
-			scene.add( light );
-			light.castShadow	= true;
-			light.shadowCameraNear	= 0.01;
-			light.shadowCameraFar	= 40;
-			light.shadowCameraFov	= 45;
+			// var light	= new THREE.AmbientLight( 0x222222 );
+			// scene.add( light );
+			// var light	= new THREE.DirectionalLight( 0xffffff, 2 );
+			// light.position.set(0, 1, 0);
+			// scene.add( light );
+			// light.castShadow	= true;
+			// light.shadowCameraNear	= 0.01;
+			// light.shadowCameraFar	= 40;
+			// light.shadowCameraFov	= 45;
 
-			light.shadowCameraLeft	= -200;
-			light.shadowCameraRight	=  200;
-			light.shadowCameraTop	=  200;
-			light.shadowCameraBottom = -200;
+			// light.shadowCameraLeft	= -5;
+			// light.shadowCameraRight	=  5;
+			// light.shadowCameraTop	=  5;
+			// light.shadowCameraBottom = -5;
 
-			light.shadowBias	= 0.001;
-			light.shadowDarkness	= 0.5;
+			// light.shadowBias	= 0.001;
+			// light.shadowDarkness	= 0.5;
 
-			light.shadowMapWidth	= 1024;
-			light.shadowMapHeight	= 1024;
+			// light.shadowMapWidth	= 1024;
+			// light.shadowMapHeight	= 1024;
+	var light = new THREE.PointLight(0xffffff);
+	light.position.set(0,250,0);
+	scene.add(light);
 
 			// Add keyboard listener
 			keyboard = new THREEx.KeyboardState();
 			
 			// // Add sky
-			// var urls = [ 
-			//     "images/space.jpg", 
-			//     "images/space.jpg", 
-			//     "images/space.jpg", 
-			//     "images/space.jpg", 
-			//     "images/space.jpg", 
-			//     "images/space.jpg", 
-			// ]; 
-			// var textureCube = THREE.ImageUtils.loadTextureCube(urls);
-			// //setup the cube shader 
-			// var shader = THREE.ShaderUtils.lib["cube"]; 
-			// var uniforms = THREE.UniformsUtils.clone(shader.uniforms); 
-			// uniforms['tCube'].texture = textureCube; 
-			// var material = new THREE.ShaderMaterial({ 
-			//         fragmentShader : shader.fragmentShader, 
-			//         vertexShader   : shader.vertexShader, 
-			//         uniforms       : uniforms 
-			// });
-			// //create a skybox 
-			// var size = 10000; 
-			// skyboxMesh = new THREE.Mesh(  
-			//     new THREE.CubeGeometry(size,size,size),material); 
-			// //IMPORTANT!! draw on the inside instead of outside 
-			// skyboxMesh.flipSided = true; // you must have this or you won't see anything 
-			// scene.add(skyboxMesh); 
+			var imagePrefix = "images/dawnmountain-"
+			var imageSuffix = ".png"
+			var directions = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"]; 
+			var materialArray = [];
+			for (var i = 0; i < 6; i++)
+			    materialArray.push( new THREE.MeshBasicMaterial({
+			        map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+			        side: THREE.BackSide
+			    }));
+			var skyGeometry = new THREE.BoxGeometry( 5000, 5000, 5000, 1, 1, 1 ); 
+			var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+			var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+			scene.add( skyBox );	
 
 			// Add sphere
 			var geometry = new THREE.SphereGeometry( 2, 32, 32 );
 			mirrorSphereCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
+			scene.add( mirrorSphereCamera );
 			var material = new THREE.MeshBasicMaterial( {
 				envMap : mirrorSphereCamera.renderTarget,
-				map : THREE.ImageUtils.loadTexture('images/earth.jpg')
 			} );
 			sphere = new THREE.Mesh( geometry, material );
 			sphere.position.z = -50;
@@ -169,33 +160,15 @@
 			scene.add( sphere );
 
 
-			var floorTexture = new THREE.ImageUtils.loadTexture( 'images/grass.png' );
+			var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
 			floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-			floorTexture.repeat.set( 10, 10 );
+			floorTexture.repeat.set( 64, 64 );
 			var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side:THREE.BackSide } );
 			var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
 			var ground = new THREE.Mesh(floorGeometry, floorMaterial);
 			ground.position.y = -1.9;
 			ground.rotation.x = Math.PI / 2;
 			scene.add(ground);
-
-			// // Add ground
-			// grassTex = THREE.ImageUtils.loadTexture('images/grass.png'); 
-			// grassTex.wrapS = THREE.RepeatWrapping; 
-			// grassTex.wrapT = THREE.RepeatWrapping; 
-			// grassTex.repeat.x = 256; 
-			// grassTex.repeat.y = 256; 
-			// var groundMat = new THREE.MeshBasicMaterial({map:grassTex});
-			// groundW = 400;
-			// groundH = 400;
-			// var groundGeo = new THREE.PlaneGeometry(groundW,groundH); 
-			// ground = new THREE.Mesh(groundGeo,groundMat); 
-			// ground.position.y = -1.9; //lower it 
-			// ground.rotation.x = -Math.PI / 2; //-90 degrees around the xaxis 
-			// //IMPORTANT, draw on both sides 
-			// ground.doubleSided = true; 
-			// ground.receiveShadow = true;
-			// scene.add(ground);
 		}
 
 		// animation loop
@@ -236,7 +209,7 @@
 	        z = sphere.position.z;
 
 			if( keyboard.pressed("up") ) {
-				if (sphere.position.z < - 199) {
+				if (sphere.position.z < - 499) {
 					sphere.position.z += .25;
 					sphere.rotation.x -= (23.5/180) * Math.PI;
 				}
@@ -248,7 +221,7 @@
 				}
 			}
 			if ( keyboard.pressed("down") ) {
-				if (sphere.position.z > 199) {
+				if (sphere.position.z > 499) {
 					sphere.position.z -= .25;
 					sphere.rotation.x += (23.5/180) * Math.PI;
 				}
@@ -260,7 +233,7 @@
 				}
 			}
 		    if (keyboard.pressed("left")){ 
-				if (sphere.position.x < - 199) {
+				if (sphere.position.x < - 499) {
 					sphere.position.x += .25;
 					sphere.rotation.z -= (45/180) * Math.PI;
 				}
@@ -271,7 +244,7 @@
 				}
 		    }
 		    if (keyboard.pressed("right")){
-				if (sphere.position.x > 199) {
+				if (sphere.position.x > 499) {
 					sphere.position.x -= .25;
 					sphere.rotation.z += (45/180) * Math.PI;
 				}
