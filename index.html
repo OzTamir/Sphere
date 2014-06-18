@@ -53,17 +53,25 @@
 	</div> 
 
 	<script type="text/javascript">
+		// Game Variables
 		var stats, scene, renderer;
 		var camera, cameraControls, mirrorSphereCamera;
 		var keyboard, sphere, ground, grassTex;
 		var groundW, groundH;
-		var a = 0.1;
-		var v = new THREE.Vector3(0, -1, 0);
+
+		// Bounce Variables
 		var bounceConst = 3.5;
 		var bounceFactor = bounceConst;
 		var subBounceConst = bounceConst - 0.5;
 		var subBounceCount = subBounceConst;
 		var shouldBounce = false;
+
+		// Bounderies Bounce Variables
+		var boundConst = 2.5;
+		var boundFactor = boundConst;
+		var reachedBound = false;
+		var bounceVector = new THREE.Vector3(0, 0, 0);
+		var axisName;
 
 		if( !init() )	animate();
 
@@ -120,8 +128,8 @@
 			var light	= new THREE.AmbientLight( 0x222222 );
 			scene.add( light );
 			var light	= new THREE.DirectionalLight( 0xffffff, 1 );
-			light.position.set(0, 1, 0);
-						light.castShadow	= true;
+			light.position.set(0, 10, 0);
+			light.castShadow	= true;
 			light.shadowCameraNear	= 0.01;
 			light.shadowCameraFar	= 40;
 			light.shadowCameraFov	= 45;
@@ -192,6 +200,9 @@
 			if (shouldBounce) {
 				bounce()
 			}
+			if (reachedBound) {
+				boundBounce()
+			}
 			// do the render
 			render();
 
@@ -258,8 +269,11 @@
 		    }
 		    if (keyboard.pressed("right")){
 				if (sphere.position.x > 499) {
-					sphere.position.x -= .25;
-					sphere.rotation.z += (45/180) * Math.PI;
+					// sphere.position.x -= .25;
+					// sphere.rotation.z += (45/180) * Math.PI;
+					axisName = "X";
+					bounceVector.setX(-1);
+					reachedBound = true;
 				}
 				else {
 			        sphere.position.x += 1
@@ -298,6 +312,31 @@
 		    }
 		    mirrorSphereCamera.position = sphere.position;
 		    camera.lookAt(sphere.position);
+		}
+
+		function boundBounce() {
+			if (boundFactor <= 0){
+				reachedBound = false;
+				boundFactor = boundConst;
+			}
+			else {
+				switch (axisName) {
+					case "x":
+					case "X":
+						sphere.position.x += bounceVector.x * bounceFactor;
+						camera.position.x += bounceVector.x * bounceFactor;
+						break;
+					case "z":
+					case "Z":
+						sphere.position.z += bounceVector.z * bounceFactor;
+						camera.position.z += bounceVector.z * bounceFactor;
+						break;
+					default:
+						break;
+				}
+				boundFactor -= 0.2
+			}
+			mirrorSphereCamera.position = sphere.position;
 		}
 
 		function bounce() {
