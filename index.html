@@ -177,12 +177,13 @@
 			mirrorSphereCamera.position = sphere.position;
 			scene.add( sphere );
 
-
+			// Add ground
 			var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
 			floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
 			floorTexture.repeat.set( 64, 64 );
 			var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side:THREE.BackSide } );
-			var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+			groundW = groundH = 1000;
+			var floorGeometry = new THREE.PlaneGeometry(groundW, groundH, 10, 10);
 			var ground = new THREE.Mesh(floorGeometry, floorMaterial);
 			ground.position.y = -1.9;
 			ground.rotation.x = Math.PI / 2;
@@ -232,10 +233,11 @@
 	        y = sphere.position.y,
 	        z = sphere.position.z;
 
-			if( keyboard.pressed("up") ) {
-				if (sphere.position.z < - 499) {
-					sphere.position.z += .25;
-					sphere.rotation.x -= (23.5/180) * Math.PI;
+			if( keyboard.pressed("up") && ((axisName != "z" && axisName != "Z") || (bounceVector.z != 1))) {
+				if (sphere.position.z < (- ((groundH / 2) - 1))) {
+					axisName = "Z";
+					bounceVector.setZ(1);
+					reachedBound = true;
 				}
 				else {
 					sphere.position.z -= 1;
@@ -244,10 +246,11 @@
 					if (Math.abs(sphere.position.z - camera.position.z) > 20) camera.position.z -= 1;
 				}
 			}
-			if ( keyboard.pressed("down") ) {
-				if (sphere.position.z > 499) {
-					sphere.position.z -= .25;
-					sphere.rotation.x += (23.5/180) * Math.PI;
+			if ( keyboard.pressed("down") && ((axisName != "z" && axisName != "Z") || (bounceVector.z != -1))) {
+				if (sphere.position.z > ((groundH / 2) - 1)) {
+					axisName = "Z";
+					bounceVector.setZ(-1);
+					reachedBound = true;
 				}
 				else {
 					sphere.position.z += 1;
@@ -256,10 +259,11 @@
 					if (Math.abs(sphere.position.z - camera.position.z) < 20) camera.position.z += 1;
 				}
 			}
-		    if (keyboard.pressed("left")){ 
-				if (sphere.position.x < - 499) {
-					sphere.position.x += .25;
-					sphere.rotation.z -= (45/180) * Math.PI;
+		    if (keyboard.pressed("left") && ((axisName != "x" && axisName != "X") || (bounceVector.x != 1))){ 
+				if (sphere.position.x < - ((groundW / 2) - 1)) {
+					axisName = "X";
+					bounceVector.setX(1);
+					reachedBound = true;
 				}
 				else {
 			        sphere.position.x -= 1
@@ -267,10 +271,8 @@
 					if (Math.abs(sphere.position.x - camera.position.x) < 20) camera.position.x -= 1;
 				}
 		    }
-		    if (keyboard.pressed("right")){
-				if (sphere.position.x > 499) {
-					// sphere.position.x -= .25;
-					// sphere.rotation.z += (45/180) * Math.PI;
+		    if (keyboard.pressed("right") && ((axisName != "x" && axisName != "X") || (bounceVector.x != -1))){
+				if (sphere.position.x > (groundW / 2) - 1) {
 					axisName = "X";
 					bounceVector.setX(-1);
 					reachedBound = true;
@@ -318,6 +320,7 @@
 			if (boundFactor <= 0){
 				reachedBound = false;
 				boundFactor = boundConst;
+				axisName = "";
 			}
 			else {
 				switch (axisName) {
