@@ -51,6 +51,13 @@
 		var camera, cameraControls, mirrorSphereCamera;
 		var keyboard, sphere, ground, grassTex;
 		var groundW, groundH;
+		var a = 0.1;
+		var v = new THREE.Vector3(0, -1, 0);
+		var bounceConst = 3.5;
+		var bounceFactor = bounceConst;
+		var subBounceConst = 3;
+		var subBounceCount = subBounceConst;
+		var shouldBounce = false;
 
 		if( !init() )	animate();
 
@@ -176,7 +183,9 @@
 			// - it has to be at the begining of the function
 			// - see details at http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 			requestAnimationFrame( animate );
-
+			if (shouldBounce) {
+				bounce()
+			}
 			// do the render
 			render();
 
@@ -253,6 +262,11 @@
 				}
 		    }
 
+		    if (keyboard.pressed("space") && !(shouldBounce)) {
+		    	shouldBounce = true;
+		    	sphere.position.y += 0.01;
+		    }
+
 		    if (keyboard.pressed("A")){
 		    	camera.position.x -= (45/180) * Math.PI;
 		    }
@@ -278,6 +292,31 @@
 		    }
 		    mirrorSphereCamera.position = sphere.position;
 		    camera.lookAt(sphere.position);
+		}
+
+		function bounce() {
+			var x = sphere.position.x,
+		        y = sphere.position.y,
+		        z = sphere.position.z;
+			if (y <= 0) {
+				if (subBounceCount == 0) {
+					sphere.position.y = 0;
+					bounceFactor = bounceConst;
+					shouldBounce = false;
+					subBounceCount = subBounceConst;
+				}
+				else {
+					sphere.position.y = 0.01;
+					subBounceCount -= 1;
+					bounceFactor = subBounceCount + 0.5;
+				}
+			}
+			else {
+				sphere.position.y += bounceFactor;
+				bounceFactor -= 0.1;
+			}
+			mirrorSphereCamera.position = sphere.position;
+
 		}
 	</script>
 </body>
