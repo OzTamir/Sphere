@@ -30,6 +30,12 @@
             margin: 0px;
             overflow: hidden;
         }
+        .top {
+        	background: rgba(0, 0, 0, .1);
+        }
+        .bottom {
+        	background: rgba(0, 0, 0, .1);
+        }
 		</style>
 	</head>
 <body>
@@ -39,7 +45,7 @@
 	<div id="info">
 		<div class="top">
 			<p><a href="https://github.com/OzTamir/Sphere">Sphere</a></p>
-			<p> QEWASD - Camera Panning		|	Arrows - Ball movement</p>
+			<p> QEWASD - Camera Panning		|	Space, Arrows - Ball movement</p>
 		</div>
 		<div class="bottom" id="inlineDoc" >
 			- <i>r</i> to reset camera - <i>p</i> for screenshot
@@ -47,10 +53,25 @@
 	</div> 
 
 	<script type="text/javascript">
+		// Game Variables
 		var stats, scene, renderer;
 		var camera, cameraControls, mirrorSphereCamera;
 		var keyboard, sphere, ground, grassTex;
 		var groundW, groundH;
+
+		// Bounce Variables
+		var bounceConst = 3.5;
+		var bounceFactor = bounceConst;
+		var subBounceConst = bounceConst - 0.5;
+		var subBounceCount = subBounceConst;
+		var shouldBounce = false;
+
+		// Bounderies Bounce Variables
+		var boundConst = 2.5;
+		var boundFactor = boundConst;
+		var reachedBound = false;
+		var bounceVector = new THREE.Vector3(0, 0, 0);
+		var axisName;
 
 		if( !init() )	animate();
 
@@ -107,8 +128,8 @@
 			var light	= new THREE.AmbientLight( 0x222222 );
 			scene.add( light );
 			var light	= new THREE.DirectionalLight( 0xffffff, 1 );
-			light.position.set(0, 1, 0);
-						light.castShadow	= true;
+			light.position.set(0, 10, 0);
+			light.castShadow	= true;
 			light.shadowCameraNear	= 0.01;
 			light.shadowCameraFar	= 40;
 			light.shadowCameraFov	= 45;
@@ -156,12 +177,13 @@
 			mirrorSphereCamera.position = sphere.position;
 			scene.add( sphere );
 
-
+			// Add ground
 			var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
 			floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
 			floorTexture.repeat.set( 64, 64 );
 			var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side:THREE.BackSide } );
-			var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 10, 10);
+			groundW = groundH = 1000;
+			var floorGeometry = new THREE.PlaneGeometry(groundW, groundH, 10, 10);
 			var ground = new THREE.Mesh(floorGeometry, floorMaterial);
 			ground.position.y = -1.9;
 			ground.rotation.x = Math.PI / 2;
@@ -176,7 +198,12 @@
 			// - it has to be at the begining of the function
 			// - see details at http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 			requestAnimationFrame( animate );
-
+			if (shouldBounce) {
+				bounce()
+			}
+			if (reachedBound) {
+				boundBounce()
+			}
 			// do the render
 			render();
 
@@ -206,10 +233,11 @@
 	        y = sphere.position.y,
 	        z = sphere.position.z;
 
-			if( keyboard.pressed("up") ) {
-				if (sphere.position.z < - 499) {
-					sphere.position.z += .25;
-					sphere.rotation.x -= (23.5/180) * Math.PI;
+			if( keyboard.pressed("up") && ((axisName != "z" && axisName != "Z") || (bounceVector.z != 1))) {
+				if (sphere.position.z < (- ((groundH / 2) - 1))) {
+					axisName = "Z";
+					bounceVector.setZ(1);
+					reachedBound = true;
 				}
 				else {
 					sphere.position.z -= 1;
@@ -218,10 +246,11 @@
 					if (Math.abs(sphere.position.z - camera.position.z) > 20) camera.position.z -= 1;
 				}
 			}
-			if ( keyboard.pressed("down") ) {
-				if (sphere.position.z > 499) {
-					sphere.position.z -= .25;
-					sphere.rotation.x += (23.5/180) * Math.PI;
+			if ( keyboard.pressed("down") && ((axisName != "z" && axisName != "Z") || (bounceVector.z != -1))) {
+				if (sphere.position.z > ((groundH / 2) - 1)) {
+					axisName = "Z";
+					bounceVector.setZ(-1);
+					reachedBound = true;
 				}
 				else {
 					sphere.position.z += 1;
@@ -230,10 +259,11 @@
 					if (Math.abs(sphere.position.z - camera.position.z) < 20) camera.position.z += 1;
 				}
 			}
-		    if (keyboard.pressed("left")){ 
-				if (sphere.position.x < - 499) {
-					sphere.position.x += .25;
-					sphere.rotation.z -= (45/180) * Math.PI;
+		    if (keyboard.pressed("left") && ((axisName != "x" && axisName != "X") || (bounceVector.x != 1))){ 
+				if (sphere.position.x < - ((groundW / 2) - 1)) {
+					axisName = "X";
+					bounceVector.setX(1);
+					reachedBound = true;
 				}
 				else {
 			        sphere.position.x -= 1
@@ -241,16 +271,22 @@
 					if (Math.abs(sphere.position.x - camera.position.x) < 20) camera.position.x -= 1;
 				}
 		    }
-		    if (keyboard.pressed("right")){
-				if (sphere.position.x > 499) {
-					sphere.position.x -= .25;
-					sphere.rotation.z += (45/180) * Math.PI;
+		    if (keyboard.pressed("right") && ((axisName != "x" && axisName != "X") || (bounceVector.x != -1))){
+				if (sphere.position.x > (groundW / 2) - 1) {
+					axisName = "X";
+					bounceVector.setX(-1);
+					reachedBound = true;
 				}
 				else {
 			        sphere.position.x += 1
 			        sphere.rotation.z -= (45/180) * Math.PI;
 					if (Math.abs(sphere.position.x - camera.position.x) > 20) camera.position.x += 1;
 				}
+		    }
+
+		    if (keyboard.pressed("space") && !(shouldBounce)) {
+		    	shouldBounce = true;
+		    	sphere.position.y += 0.01;
 		    }
 
 		    if (keyboard.pressed("A")){
@@ -278,6 +314,57 @@
 		    }
 		    mirrorSphereCamera.position = sphere.position;
 		    camera.lookAt(sphere.position);
+		}
+
+		function boundBounce() {
+			if (boundFactor <= 0){
+				reachedBound = false;
+				boundFactor = boundConst;
+				axisName = "";
+			}
+			else {
+				switch (axisName) {
+					case "x":
+					case "X":
+						sphere.position.x += bounceVector.x * bounceFactor;
+						camera.position.x += bounceVector.x * bounceFactor;
+						break;
+					case "z":
+					case "Z":
+						sphere.position.z += bounceVector.z * bounceFactor;
+						camera.position.z += bounceVector.z * bounceFactor;
+						break;
+					default:
+						break;
+				}
+				boundFactor -= 0.2
+			}
+			mirrorSphereCamera.position = sphere.position;
+		}
+
+		function bounce() {
+			var x = sphere.position.x,
+		        y = sphere.position.y,
+		        z = sphere.position.z;
+			if (y <= 0 || (y + bounceFactor) <= 0) {
+				if (subBounceCount == 0) {
+					sphere.position.y = 0;
+					bounceFactor = bounceConst;
+					shouldBounce = false;
+					subBounceCount = subBounceConst;
+				}
+				else {
+					sphere.position.y = 0.01;
+					subBounceCount -= 1;
+					bounceFactor = subBounceCount + 0.5;
+				}
+			}
+			else {
+				sphere.position.y += bounceFactor;
+				bounceFactor -= 0.1;
+			}
+			mirrorSphereCamera.position = sphere.position;
+
 		}
 	</script>
 </body>
