@@ -55,7 +55,7 @@
 		var v = new THREE.Vector3(0, -1, 0);
 		var bounceConst = 3.5;
 		var bounceFactor = bounceConst;
-		var subBounceConst = 3;
+		var subBounceConst = bounceConst - 0.5;
 		var subBounceCount = subBounceConst;
 		var shouldBounce = false;
 
@@ -298,7 +298,7 @@
 			var x = sphere.position.x,
 		        y = sphere.position.y,
 		        z = sphere.position.z;
-			if (y <= 0) {
+			if (y <= 0 || (y + bounceFactor) <= 0) {
 				if (subBounceCount == 0) {
 					sphere.position.y = 0;
 					bounceFactor = bounceConst;
